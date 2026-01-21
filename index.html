@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicPRO - Ultimate Audio Experience</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* --- Full Screen Overlay Styles --- */
+        #offline-overlay {
+            /* Fixed position covers the whole viewport */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            
+            /* High z-index ensures it is on top of everything */
+            z-index: 9999;
+            
+            /* Visual styling: Dark background, white text */
+            background-color: rgba(0, 0, 0, 0.95); 
+            color: white;
+            
+            /* Hidden by default */
+            display: none;
+            
+            /* Flexbox to perfectly center content */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #offline-overlay h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        #offline-overlay p {
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+
+        /* Styling for the Retry Button */
+        .retry-btn {
+            margin-top: 20px;
+            padding: 10px 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .retry-btn:hover {
+            background: #ddd;
+        }
+
+        /* Normal content styling */
+        .content {
+            padding: 40px;
+        }
+        /* --- 1. LOGIN OVERLAY STYLES (Hidden by default) --- */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); /* Dark blur background */
+            backdrop-filter: blur(15px);
+            z-index: 9999;
+            display: none; /* Hidden initially */
+            justify-content: center; align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .login-card {
+            background: white; padding: 2.5rem; border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            width: 100%; max-width: 380px; text-align: center; color: #1f2937;
+        }
+
+        /* --- 2. UI ADDITIONS (Gear & Profile) --- */
+        .settings-trigger {
+            cursor: pointer; font-size: 1.3rem; color: #6366f1; transition: 0.3s;
+        }
+        .settings-trigger:hover { transform: rotate(90deg); color: white; }
+
+        /* Profile Tab Styles */
+        .profile-card {
+            background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 20px;
+            text-align: center; margin-top: 20px; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .user-avatar { font-size: 4rem; color: #6366f1; margin-bottom: 15px; }
+        .logout-btn {
+            background: #ef4444; color: white; border: none; padding: 10px 25px;
+            border-radius: 10px; margin-top: 20px; cursor: pointer; width: 100%; font-weight: 600;
+        }
+
+        /* Form Elements for Login */
+        .input-group { text-align: left; margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 5px; }
+        .input-group input { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 12px; box-sizing: border-box; }
+        .btn-primary { width: 100%; padding: 14px; background: #6366f1; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600; margin-top: 10px; }
+        .btn-google { width: 100%; padding: 14px; background: white; color: #374151; border: 2px solid #f3f4f6; border-radius: 12px; cursor: pointer; font-weight: 600; margin-top: 10px; display: flex; justify-content: center; gap: 10px; }
+        .close-login { position: absolute; top: 20px; right: 20px; color: white; font-size: 1.5rem; cursor: pointer; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+
+<body>
+    <div id="offline-overlay">
+        <svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="1" y1="1" x2="23" y2="23"></line>
+            <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+            <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+            <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+            <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+            <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+            <line x1="12" y1="20" x2="12.01" y2="20"></line>
+        </svg>
+
+        <h1>No Internet Connection</h1>
+        <p>Please check your network settings and try again!</p>
+        <button class="retry-btn" onclick="window.location.reload()">Retry</button>
+    </div>
+    <div id="login-overlay">
+        <i class="fas fa-times close-login" onclick="closeLogin()"></i>
+        <div class="login-card">
+            <h2>Sign In</h2>
+            <p style="color:#6b7280; margin-bottom:20px;">Login to play music & sync playlists</p>
+
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="email" placeholder="you@example.com">
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+            <button class="btn-primary" onclick="handleEmailLogin()">Sign In</button>
+
+            <button class="btn-google" onclick="handleGoogleLogin()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" alt="G">
+                Google
+            </button>
+            <button style="background:none; border:none; color:#6b7280; margin-top:15px; cursor:pointer; text-decoration:underline;" onclick="handleGuestLogin()">Continue as Guest</button>
+        </div>
+    </div>
+
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="music-pro-container">
+        <div class="player-section">
+            <div class="app-header">
+                <div class="logo">Music<span>PRO</span></div>
+                
+                <div class="settings-trigger" onclick="handleGearClick()">
+                    <i class="fas fa-cog"></i>
+                </div>
+            </div>
+
+            <div class="album-art-container">
+                <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500" class="album-art" id="cover-art">
+                <div class="center-hub"></div>
+            </div>
+
+            <div class="song-info">
+                <h2 id="track-name">Ready to Play</h2>
+                <p id="artist-name">Select a track</p>
+            </div>
+
+
+            <canvas id="visualizer"></canvas>
+
+            <div class="progress-wrapper">
+                <div class="progress-bar" id="progress-container">
+                    <div class="progress-fill" id="progress"></div>
+                </div>
+                <div class="time-stamps">
+                    <span id="current-time">0:00</span>
+                    <span id="total-time">0:00</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn-control" onclick="checkLogin(toggleShuffle)"><i class="fas fa-shuffle"></i></button>
+                <button class="btn-control" onclick="checkLogin(prevTrack)"><i class="fas fa-backward-step"></i></button>
+                <button class="btn-control btn-main" onclick="checkLogin(playPause)" id="play-btn"><i class="fas fa-circle-play"></i></button>
+                <button class="btn-control" onclick="checkLogin(nextTrack)"><i class="fas fa-forward-step"></i></button>
+                <button class="btn-control" onclick="checkLogin(toggleLike)"><i class="far fa-heart"></i></button>
+            </div>
+        </div>
+
+        <div class="library-section">
+            <div class="tabs">
+                <button class="tab-btn active-tab" onclick="switchTab('playlist')">Playlist</button>
+                <button class="tab-btn" onclick="switchTab('eq')">Equalizer</button>
+                <button class="tab-btn" onclick="switchTab('lyrics')">Lyrics</button>
+                </div>
+
+            <input type="text" class="search-box" id="search-input" placeholder="Search tracks..." onkeyup="filterPlaylist()">
+
+            <div class="playlist-container" id="playlist-view"></div>
+
+            <div class="eq-container" id="eq-view" style="display:none; flex-direction:column;">
+                <div class="eq-header" style="text-align:center; width:100%; margin-bottom:15px; color:var(--accent);">
+                    <i class="fas fa-sliders-h"></i> Advanced Equalizer
+                </div>
+                
+                <div class="eq-sliders">
+                    <div class="eq-band"><input type="range" min="-12" max="12" value="0" oninput="updateEQ(0, this.value)"><span>60</span></div>
+                    <div class="eq-band"><input type="range" min="-12" max="12" value="0" oninput="updateEQ(1, this.value)"><span>170</span></div>
+                    <div class="eq-band"><input type="range" min="-12" max="12" value="0" oninput="updateEQ(2, this.value)"><span>310</span></div>
+                    <div class="eq-band"><input type="range" min="-12" max="12" value="0" oninput="updateEQ(3, this.value)"><span>600</span></div>
+                    <div class="eq-band"><input type="range" min="-12" max="12" value="0" oninput="updateEQ(4, this.value)"><span>1K</span></div>
+                    <div class="eq-band"><input type="range" min="-12" max="12" value="0" oninput="updateEQ(5, this.value)"><span>3K</span></div>
+                    <div class="eq-band"><input type="range" min="-12" max="12" value="0" oninput="updateEQ(6, this.value)"><span>6K</span></div>
+                    <div class="eq-band"><input type="range" min="-12" max="12" value="0" oninput="updateEQ(7, this.value)"><span>12K</span></div>
+                    <div class="eq-band"><input type="range" min="-12" max="12" value="0" oninput="updateEQ(8, this.value)"><span>14K</span></div>
+                    <div class="eq-band"><input type="range" min="-12" max="12" value="0" oninput="updateEQ(9, this.value)"><span>16K</span></div>
+                </div>
+
+                <div class="eq-slider-group" style="margin-top:20px; width:100%;">
+                    <span class="eq-label">VOL</span>
+                    <div class="slider-wrapper"><input type="range" min="0" max="1" step="0.01" value="1" oninput="setVolume(this.value)"></div>
+                </div>
+            </div>
+
+            <div class="lyrics-container" id="lyrics-view" style="display:none;">
+                <p class="current-lyric">Lyrics coming soon...</p>
+            </div>
+
+            <div class="profile-container" id="profile-view" style="display:none;">
+                <div class="profile-card">
+                    <div class="user-avatar"><i class="fas fa-user-circle"></i></div>
+                    <h3 id="display-user-name">Loading...</h3>
+                    <p id="display-user-email" style="color:#94a3b8; font-size:0.9rem;">...</p>
+                    <button class="logout-btn" onclick="handleLogout()">Log Out</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="social-float-bar">
+        <a href="https://wa.me/9874795088" class="social-icon" target="_blank"><i class="fab fa-whatsapp"></i></a>
+        <a href="about.html" class="social-icon" target="_blank"><i class="fas fa-user"></i></a>
+        <a href="mailto:shibamaddya94@gmail.com" class="social-icon" target="_blank"><i class="fas fa-envelope"></i></a>
+        <a href="https://www.instagram.com/__.shibxam.__/" class="social-icon" target="_blank"><i class="fab fa-instagram"></i></a>
+    </div>
+
+    <audio id="audio-source" crossorigin="anonymous"></audio>
+    
+    <script src="jk.js"></script>
+    <script src="control.js"></script>
+    <script>
+         const overlay = document.getElementById('offline-overlay');
+
+         function updateStatus() {
+             if (navigator.onLine) {
+                 // Online: Hide the overlay
+                 overlay.style.display = 'none';
+             } else {
+                 // Offline: Show the overlay as Flexbox (to keep centering)
+                 overlay.style.display = 'flex';
+             }
+         }
+
+        // Event Listeners
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+
+        // Initial check on load
+        updateStatus();
+    </script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, increment } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+        // PASTE YOUR CONFIG HERE
+        const firebaseConfig = {
+            apiKey: "AIzaSyD2DiFhpnTT4eU38j9cm39EYcRUIHGD_7M",
+            authDomain: "auth-9933d.firebaseapp.com",
+            projectId: "auth-9933d",
+            storageBucket: "auth-9933d.firebasestorage.app",
+            messagingSenderId: "824138117819",
+            appId: "1:824138117819:web:018c1392412bf8a1d92f9e",
+            measurementId: "G-CB3C54Y1RD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let isUserLoggedIn = false;
+
+        // 1. MONITOR AUTH STATE
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                isUserLoggedIn = true;
+                closeLogin(); // Auto close overlay if valid
+                
+                // Update Profile UI
+                document.getElementById('display-user-name').innerText = user.displayName || "Music Fan";
+                document.getElementById('display-user-email').innerText = user.email || "Guest";
+                // document.getElementById('profile-tab-btn').style.display = 'inline-block'; // REMOVED THIS LINE
+            } else {
+                isUserLoggedIn = false;
+                // document.getElementById('profile-tab-btn').style.display = 'none'; // REMOVED THIS LINE
+            }
+        });
+
+        // 2. THE GUARD FUNCTION
+        window.checkLogin = (actionCallback) => {
+            if (isUserLoggedIn) {
+                if (typeof actionCallback === 'function') actionCallback();
+            } else {
+                document.getElementById('login-overlay').style.display = 'flex';
+            }
+        };
+
+        // 3. PLAYLIST GUARD
+        document.getElementById('playlist-view').addEventListener('click', (e) => {
+            if (!isUserLoggedIn) {
+                e.stopPropagation();
+                e.preventDefault();
+                document.getElementById('login-overlay').style.display = 'flex';
+            }
+        }, true);
+
+        // 4. GEAR ICON LOGIC
+        window.handleGearClick = () => {
+            if (isUserLoggedIn) {
+                switchTab('profile'); // Opens profile view via script
+            } else {
+                document.getElementById('login-overlay').style.display = 'flex';
+            }
+        };
+
+        // 5. LOGIN HELPERS
+        window.closeLogin = () => document.getElementById('login-overlay').style.display = 'none';
+
+        window.handleEmailLogin = async () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+                trackStats();
+            } catch (error) {
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                    try {
+                        await createUserWithEmailAndPassword(auth, email, pass);
+                        trackStats();
+                    } catch (regErr) { alert(regErr.message); }
+                } else { alert(error.message); }
+            }
+        };
+
+        window.handleGoogleLogin = async () => {
+            try { await signInWithPopup(auth, new GoogleAuthProvider()); trackStats(); } 
+            catch (e) { console.error(e); }
+        };
+
+        window.handleGuestLogin = async () => {
+            try { await signInAnonymously(auth); trackStats(); } 
+            catch (e) { console.error(e); }
+        };
+
+        window.handleLogout = () => {
+            signOut(auth).then(() => {
+                switchTab('playlist'); 
+                alert("Logged out successfully");
+            });
+        };
+
+        async function trackStats() {
+            const statsRef = doc(db, "analytics", "main_stats");
+            try { await updateDoc(statsRef, { user_count: increment(1) }); } catch (e) {}
+        }
+
+        // 6. TAB SWITCHER
+        window.switchTab = (tabName) => {
+            ['playlist-view', 'eq-view', 'lyrics-view', 'profile-view'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.style.display = 'none';
+            });
+            document.getElementById(tabName + '-view').style.display = 'block';
+            
+            // Only update buttons if clicked on one
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active-tab');
+                if(btn.innerText.toLowerCase() === tabName) btn.classList.add('active-tab');
+            });
+        };
+    </script>
+</body>
+</html>
